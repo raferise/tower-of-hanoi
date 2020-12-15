@@ -1,93 +1,126 @@
 :root {
-    --ring-main: red;
-    --ring-shadow: darkred;
+    --disc-main: red;
+    --disc-shadow: darkred;
     --pole-main: lightgray;
     --pole-shadow: gray;
     --debug-1: magenta;
     --debug-2: cyan;
     --debug-3: lime;
-    --pole-rx: 5rem;
-    --pole-ry: 2rem;
-    --disc-rx: 5em;
-    --disc-ry: 2em;
+    /* "perspective" constants, changes ratio of width:height */
+    --tower-dx: 5em;
+    --tower-dy: 2em;
+    /* changes overall scaling */
+    --scale: 0.8rem;
+}
+
+html, body {
+    margin: 0;
+    height: 100%;
+    font-size: var(--scale);
+}
+
+section {
+    display: flex;
+    justify-content: center;
+    flex-direction: row;
+    height: 100%;
+    width: 100%;
 }
 
 .polegroup {
     display: flex;
     justify-content: center;
+    flex-direction: row;
+    width: 50px;
+    height: 100%;
+    flex-grow: 1;
+    outline: 1px dashed magenta;
+    margin: 0 10px;
 }
 
-.pole {
+.pole { /*main body of pole*/
     position: absolute;
     background: var(--pole-shadow);
     bottom: 0px;
-    height: 55vh;
-    width: var(--pole-rx);
+    height: 55%;
+    width: var(--tower-dx);
 }
-.pole:after, .disc::after {
+.pole:before, .disc:before { /*top part of pole, also hole in disc*/
     content: ' ';
     position: absolute;
     background: var(--pole-main);
-    width: var(--pole-rx);
-    height: var(--pole-ry);
+    /* base dimensons on constant global size */
+    font-size: var(--scale);
+    width: var(--tower-dx);
+    height: var(--tower-dy);
+    /* ellipse borders */
     border-radius: 100%;
-    margin-top: calc(-1 * calc(var(--pole-ry) / 2));
-    
-    transition: inherit;
+    /* for poles, move down by half the height */
+    margin-top: calc(-1 * calc(var(--tower-dy) / 2));
 }
 
-.disc.move {
-    top: 500px;
-}
-
-.disc { /*upper segment*/
-    background: var(--ring-main);
-    /* box-shadow: inset 0 0 0 1em red; */
+.disc { /*top surface of disc (top half) that renders below pole*/
+    background: var(--disc-main);
     position: absolute;
-    font-size: 5rem;
-    top: 50px;
-    width: var(--disc-rx);
-    height: var(--disc-ry);
+    /* size of ring, set font-size on style attribute to change disc size */
+    font-size: 5em;
+    /* scales based on perspective constants */
+    width: var(--tower-dx);
+    height: var(--tower-dy);
     border-radius: 100%;
 
+    /* use flexbox to center hole */
     display: flex;
     justify-content: center;
     align-items: center;
 
+    /* TODO fancy rim lighting? */
+    /* box-shadow: inset 10px -2px 0 0.1em rgba(255,255,255,0.5); */
+
+    /* animate position changes */
     transition: top 1s ease-in-out;
 }
+.disc:before { /*hole in disc*/
+    background: var(--disc-shadow);
+    /* already centered thanks to flexbox */
+    margin-top: 0;
+}
 
-.disc .bottom { /*height segment*/
-    
-    background: var(--ring-shadow);
+.disc .bottom { /* vertical dimension of disc, renders above pole */
+    background: var(--disc-shadow);
     position: relative;
     width: 100%;
+    /* height must be same so border radius works properly. if you want them taller you'll need more elements */
     height: 100%;
+    box-sizing: border-box;
+    /* shift down to use non-rounded top as height portion*/
     top: 50%;
     
+    /* elliptical borders on bottom only */
     border-bottom-right-radius: 100%;
     border-bottom-left-radius: 100%;
+    /* render above pole */
     z-index: 1;
 
-    -webkit-mask: radial-gradient(ellipse calc(var(--pole-rx) / 2) calc(var(--pole-ry) / 2) at top, transparent 99%,#fff 100%);
-    mask: radial-gradient(ellipse calc(var(--pole-rx) / 2) calc(var(--pole-ry) / 2) at top, transparent 99%,#fff 100%);
+    /* base hole size off constant global size*/
+    font-size: var(--scale);
+    /* cut out hole in the middle for pole to be visible */
+    /* https://stackoverflow.com/a/63714881 */
+    -webkit-mask: radial-gradient(ellipse calc(var(--tower-dx) / 2) calc(var(--tower-dy) / 2) at top, transparent 99%,#fff 100%);
+    mask: radial-gradient(ellipse calc(var(--tower-dx) / 2) calc(var(--tower-dy) / 2) at top, transparent 99%,#fff 100%);
     
 }
 
-.disc .bottom:before { /*height clipping / pole overlay segment*/
+.disc .bottom:before { /* top surface of disc (bottom half) that renders above pole */
     content: ' ';
-    background: linear-gradient(transparent 49%, var(--ring-main) 50%, var(--ring-main) 100%);
+    background: var(--disc-main);
     display: inline-block;
     position: relative;
     width: 100%;
     height: 100%;
-    top: -50%;
-    
-    border-bottom-left-radius: 100%;
-    border-bottom-right-radius: 100%;
-}
 
-.disc:after { /*dot*/
-    background: var(--ring-shadow);
-    margin-top: 0;
+    /* revert shift down from parent element */
+    top: -50%;
+    /* elliptical borders */
+    border-radius: 100%;
 }

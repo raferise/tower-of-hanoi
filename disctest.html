@@ -20,11 +20,44 @@
 </head>
 
 <body>
-    <div class="polegroup">
-        <div class="disc" onclick="this.classList.toggle('move')">
-            <div class="bottom"></div>
+    <section>
+        <div class="polegroup">
+            <div class="disc" style="top: 90px; font-size: 6em" onclick="move(this)">
+                <div class="bottom"></div>
+            </div>
+            <div class="disc" style="top: 0px; font-size: 5em" onclick="move(this)">
+                <div class="bottom"></div>
+            </div>
+            <div class="pole"></div>
         </div>
-        <div class="pole"></div>
-    </div>
+        <div class="polegroup">
+            <div class="disc" style="top: 90px; font-size: 6em" onclick="move(this)">
+                <div class="bottom"></div>
+            </div>
+            <div class="disc" style="top: 0px; font-size: 5em" onclick="move(this)">
+                <div class="bottom"></div>
+            </div>
+            <div class="pole"></div>
+        </div>
+        <div class="polegroup">
+            <div class="disc" style="top: 90px; font-size: 6em" onclick="move(this)">
+                <div class="bottom"></div>
+            </div>
+            <div class="disc" style="top: 0px; font-size: 5em" onclick="move(this)">
+                <div class="bottom"></div>
+            </div>
+            <div class="pole"></div>
+        </div>
+    </section>
+    <script>
+        function move(el) {
+            if (parseInt(el.style.top) < 100) {
+                el.style.top = parseInt(el.style.top)+400+"px";
+            } else {
+                el.style.top = parseInt(el.style.top)-400+"px";
+            }
+        }
+    </script>
 </body>
+
 </html>
