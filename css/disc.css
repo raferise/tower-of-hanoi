@@ -107,8 +107,9 @@ section {
     font-size: var(--scale);
     /* cut out hole in the middle for pole to be visible */
     /* https://stackoverflow.com/a/63714881 */
-    -webkit-mask: radial-gradient(ellipse calc(var(--tower-dx) / 2) calc(var(--tower-dy) / 2) at top, transparent 99%,#fff 100%);
-    mask: radial-gradient(ellipse calc(var(--tower-dx) / 2) calc(var(--tower-dy) / 2) at top, transparent 99%,#fff 100%);
+    /* ellipse radii = tower diameter/2 (adding 0.5 makes it render smoother, probably something to do with css rounding, idk)*/
+    -webkit-mask: radial-gradient(ellipse calc(0.5px + var(--tower-dx) / 2) calc(0.5px + var(--tower-dy) / 2) at top, transparent 99%,#fff 100%);
+    mask: radial-gradient(ellipse calc(0.5px + var(--tower-dx) / 2) calc(0.5px + var(--tower-dy) / 2) at top, transparent 99%,#fff 100%);
 }
 
 .disc .bottom:before { /* top surface of disc (bottom half) that renders above pole */
