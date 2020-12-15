@@ -1,88 +1,93 @@
-.disc {
-    background: red;
-    position: absolute;
-    font-size: 5rem;
-    top: 50px;
-    left: 50px;
-    height: 2em;
-    width: 5em;
-    border-radius: 100%;
+:root {
+    --ring-main: red;
+    --ring-shadow: darkred;
+    --pole-main: lightgray;
+    --pole-shadow: gray;
+    --debug-1: magenta;
+    --debug-2: cyan;
+    --debug-3: lime;
+    --pole-rx: 5rem;
+    --pole-ry: 2rem;
+    --disc-rx: 5em;
+    --disc-ry: 2em;
+}
+
+.polegroup {
     display: flex;
     justify-content: center;
-    align-items: center;
-    box-sizing: border-box;
-    transition-property: top;
-    transition-duration: 1s;
-    transition-timing-function: ease-in-out;;
-}
-
-.disc:after {
-    content: ' ';
-    background: darkred;
-    position: absolute;
-    width: 100%;
-    height: 100%;
-    
-    margin-top: 2em;
-    border-bottom-left-radius: 100%;
-    border-bottom-right-radius: 100%;
-    z-index: -1;
-
-    transition: inherit;
-}
-
-.disc:before {
-    content: ' ';
-    background: darkred;
-    height: 2rem;
-    width: 5rem;
-    border-radius: 100%;
-
-    transition: inherit;
-    transition-property: background;
-}
-.disc .poletop {
-    opacity: 0;
-    position: absolute;
-    background: gray;
-    height: 0;
-    width: 5rem;
-    margin-bottom: 0;
-    
-    transition: inherit;
-    transition-property: opacity, height, margin-bottom;
-    transition-duration: 1s;
-}
-.poletop:after, .pole:after {
-    content: ' ';
-    position: absolute;
-    background: lightgray;
-    height: 2rem;
-    width: 5rem;
-    border-radius: 100%;
-    margin-top: -1rem;
-    
-    transition: inherit;
-}
-.disc.move {
-    top: 500px;
-}
-.disc.move:before {
-    background: gray;
-}
-.disc.move .poletop {
-    opacity: 1;
-    height: 10rem;
-    margin-bottom: 2em;
-    
 }
 
 .pole {
     position: absolute;
-    background: gray;
-    left: 210px;
+    background: var(--pole-shadow);
     bottom: 0px;
     height: 55vh;
-    width: 5rem;
-    z-index: -1;
+    width: var(--pole-rx);
+}
+.pole:after, .disc::after {
+    content: ' ';
+    position: absolute;
+    background: var(--pole-main);
+    width: var(--pole-rx);
+    height: var(--pole-ry);
+    border-radius: 100%;
+    margin-top: calc(-1 * calc(var(--pole-ry) / 2));
+    
+    transition: inherit;
+}
+
+.disc.move {
+    top: 500px;
+}
+
+.disc { /*upper segment*/
+    background: var(--ring-main);
+    /* box-shadow: inset 0 0 0 1em red; */
+    position: absolute;
+    font-size: 5rem;
+    top: 50px;
+    width: var(--disc-rx);
+    height: var(--disc-ry);
+    border-radius: 100%;
+
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    transition: top 1s ease-in-out;
+}
+
+.disc .bottom { /*height segment*/
+    
+    background: var(--ring-shadow);
+    position: relative;
+    width: 100%;
+    height: 100%;
+    top: 50%;
+    
+    border-bottom-right-radius: 100%;
+    border-bottom-left-radius: 100%;
+    z-index: 1;
+
+    -webkit-mask: radial-gradient(ellipse calc(var(--pole-rx) / 2) calc(var(--pole-ry) / 2) at top, transparent 99%,#fff 100%);
+    mask: radial-gradient(ellipse calc(var(--pole-rx) / 2) calc(var(--pole-ry) / 2) at top, transparent 99%,#fff 100%);
+    
+}
+
+.disc .bottom:before { /*height clipping / pole overlay segment*/
+    content: ' ';
+    background: linear-gradient(transparent 49%, var(--ring-main) 50%, var(--ring-main) 100%);
+    display: inline-block;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    top: -50%;
+    
+    border-bottom-left-radius: 100%;
+    border-bottom-right-radius: 100%;
+}
+
+.disc:after { /*dot*/
+    background: var(--ring-shadow);
+    margin-top: 0;
 }
