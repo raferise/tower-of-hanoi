@@ -3,6 +3,7 @@
     --disc-shadow: darkred;
     --pole-main: lightgray;
     --pole-shadow: gray;
+    /* debug colors */
     --debug-1: magenta;
     --debug-2: cyan;
     --debug-3: lime;
@@ -11,6 +12,9 @@
     --tower-dy: 2em;
     /* changes overall scaling */
     --scale: 0.8rem;
+    /* extra lighting effects */
+    --shadow: inset -2px -1px 0 4px rgba(0,0,0,0.2);
+    --hightlight: inset 2px 2px 0px 2px rgba(255,255,255,0.4)
 }
 
 html, body {
@@ -74,9 +78,6 @@ section {
     justify-content: center;
     align-items: center;
 
-    /* TODO fancy rim lighting? */
-    /* box-shadow: inset 10px -2px 0 0.1em rgba(255,255,255,0.5); */
-
     /* animate position changes */
     transition: top 1s ease-in-out;
 }
@@ -108,7 +109,6 @@ section {
     /* https://stackoverflow.com/a/63714881 */
     -webkit-mask: radial-gradient(ellipse calc(var(--tower-dx) / 2) calc(var(--tower-dy) / 2) at top, transparent 99%,#fff 100%);
     mask: radial-gradient(ellipse calc(var(--tower-dx) / 2) calc(var(--tower-dy) / 2) at top, transparent 99%,#fff 100%);
-    
 }
 
 .disc .bottom:before { /* top surface of disc (bottom half) that renders above pole */
@@ -123,4 +123,12 @@ section {
     top: -50%;
     /* elliptical borders */
     border-radius: 100%;
+}
+
+/* shadow and higlights */
+.disc, .disc .bottom:before, .pole:before {
+    box-shadow: var(--hightlight)
+}
+.disc .bottom, .pole {
+    box-shadow: var(--shadow), var(--hightlight)
 }
