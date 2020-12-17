@@ -22,40 +22,45 @@
 <body>
     <section>
         <div class="polegroup">
-            <div class="disc" style="top: 90px; font-size: 6em" onclick="move(this)">
+            <div class="disc" style="font-size: 8em;">
                 <div class="bottom"></div>
             </div>
-            <div class="disc" style="top: 0px; font-size: 5em" onclick="move(this)">
+            <div class="disc" style="font-size: 6em;">
+                <div class="bottom"></div>
+            </div>
+            <div class="disc" style="font-size: 5em;">
+                <div class="bottom"></div>
+            </div><div class="disc" style="font-size: 4em;">
+                <div class="bottom"></div>
+            </div>
+        <div class="disc" style="font-size: 3em;">
+                <div class="bottom"></div>
+            </div><div class="disc selected" style="font-size: 2em;">
+                <div class="bottom"></div>
+            </div></div>
+        <div class="polegroup">
+            <div class="disc" style="font-size: 5em">
+                <div class="bottom"></div>
+            </div>
+            <div class="disc" style="font-size: 4em">
                 <div class="bottom"></div>
             </div>
             <div class="pole"></div>
         </div>
         <div class="polegroup">
-            <div class="disc" style="top: 90px; font-size: 5em" onclick="move(this)">
+            <div class="disc" style="font-size: 3em">
                 <div class="bottom"></div>
             </div>
-            <div class="disc" style="top: 0px; font-size: 4em" onclick="move(this)">
-                <div class="bottom"></div>
-            </div>
-            <div class="pole"></div>
-        </div>
-        <div class="polegroup">
-            <div class="disc" style="top: 90px; font-size: 3em" onclick="move(this)">
-                <div class="bottom"></div>
-            </div>
-            <div class="disc" style="top: 0px; font-size: 2em" onclick="move(this)">
+            <div class="disc" style="font-size: 2em">
                 <div class="bottom"></div>
             </div>
             <div class="pole"></div>
         </div>
     </section>
     <script>
-        function move(el) {
-            if (parseInt(el.style.top) < 100) {
-                el.style.top = parseInt(el.style.top)+400+"px";
-            } else {
-                el.style.top = parseInt(el.style.top)-400+"px";
-            }
+        document.querySelectorAll(".disc").forEach(el => el.addEventListener("click",move));
+        function move(event) {
+            event.currentTarget.classList.toggle("selected");
         }
     </script>
 </body>

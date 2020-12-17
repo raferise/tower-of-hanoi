@@ -33,10 +33,12 @@ section {
 
 .polegroup {
     display: flex;
-    justify-content: center;
-    flex-direction: row;
+    align-items: center;
+    flex-direction: column-reverse;
     width: 50px;
     height: 100%;
+    box-sizing: border-box;
+    padding-bottom: calc(var(--tower-dy));
     flex-grow: 1;
     outline: 1px dashed magenta;
     margin: 0 10px;
@@ -65,13 +67,15 @@ section {
 
 .disc { /*top surface of disc (top half) that renders below pole*/
     background: var(--disc-main);
-    position: absolute;
+    /* position: absolute; */
     /* size of ring, set font-size on style attribute to change disc size */
     font-size: 5em;
     /* scales based on perspective constants */
     width: var(--tower-dx);
     height: var(--tower-dy);
     border-radius: 100%;
+    /* offset by half their height */
+    margin-bottom: calc(-1 * var(--tower-dy)/2);
 
     /* use flexbox to center hole */
     display: flex;
