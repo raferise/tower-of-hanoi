@@ -15,15 +15,14 @@
 // Class (which becomes multiple Objects) to represent towers
 class Tower {
     constructor(htmlTowerElement) {
-        this.htmlTowerElement
-        this.isGoalPole //based on the class on the htmlTowerElement
+        this.htmlTowerElement = htmlTowerElement;
+        this.isGoalPole = '';
         //bind onTowerClick
     }
     onTowerClick() {
-        //if gamestate "ring" and I have rings
-            //set global selected ring to my top ring
-            //change game state to "pole"
-        //if gamestate "pole"
+        //if a ring is not yet selected (document.querySelector(".ring.selected"))
+            //set .selected class on myself and my topRing
+        //else (ring is already selected)
             //if the selected ring is my top ring
                 //deselect it
             //else if the selected ring is smaller than my top ring
@@ -31,7 +30,16 @@ class Tower {
                 //if I am goal pole and I am complete, call playerWin()
     }
     getTopRing() {
-        //returns the topmost ring from my pole's HTML element
+        //returns the topmost ring element from this tower
+        //tower is ordered as follows (to make overlapping work properly)
+        //LARGEST
+        //LARGER
+        //SMALLER
+        //SMALLEST
+        //POLE
+        //so the topmost element is the second to last one.
+        return this.htmlTowerElement.children[this.htmlTowerElement.childElementCount-2];
+        
     }
     isComplete() {
         //returns a boolean stating whether or not I am a complete tower
@@ -58,12 +66,15 @@ class Tower {
 }
 
 //GAME CONTROLLER
-//Make 3 tower objects and store them (in order)
+//Make 3 tower objects and store them.
 let towers;
-//global variable - "ring" or "pole"
-let gamestate;
-//global variable - reference to currently selected ring HTMLElement
-let selectedring;
+//no global variables will be necessary! I did some thinking and we can actually store gamestate AND the selected ring
+//INSIDE the HTML and with a SINGLE VALUE!!!
+//We can do this by applying the .selected class to a ring. This not only gives us a way to find the selected ring with .querySelector
+//but it also differentiates between what a click on a tower should do
+//because the first click adds a .selected class and the second click moves the .selected and removes its class.
+//we can also use a class to mark which pole is the goal pole, and make its object recognize that and do the checks.
+//that means the only global-scope things we need is a list of the towers and methods to reset the game / show the "You Win!" popup.
 function playerWin() {
     //you win! do a pop up and confetti
     resetGame();

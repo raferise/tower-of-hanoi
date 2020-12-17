@@ -1,2 +1,197 @@
+:root {
+    /* colors */
+    --ring-1: red;
+    --ring-1-shadow: darkred;
+    --ring-2: green;
+    --ring-2-shadow: darkgreen;
+    --ring-3: blue;
+    --ring-3-shadow: darkblue;
+    --ring-4: gold;
+    --ring-4-shadow: goldenrod;
+    --pole-main: lightgray;
+    --pole-shadow: gray;
+    --background-color: white;
+    /* "perspective" constants, changes ratio of width:height */
+    --tower-dx: 7em;
+    --tower-dy: 4.5em;
+    /* global scaling constant, based on screen height */
+    --scale: 1vh;
+    /* extra lighting effects */
+    --shadow: inset -2px -1px 0 4px rgba(0,0,0,0.2);
+    --highlight: inset 2px 2px 0px 2px rgba(255,255,255,0.4);
+}
 
-/*  Put your CSS Here */
+html, body { 
+    margin: 0;
+    font-size: var(--scale);
+    background: var(--background-color);
+}
+
+section {
+    position: fixed;
+    width: 100%;
+    height: 100%;
+}
+.tower-game {
+    display: flex;
+    justify-content: space-evenly;
+}
+.info-popup {
+    border: 5px dashed magenta;
+    display: none;
+}
+
+.tower {
+    outline: 1px solid magenta;
+    display: flex;
+    align-items: center;
+    flex-direction: column-reverse;
+    margin: 0px 10px;
+    padding-bottom: calc(4*var(--tower-dy));
+    /* start as small as possible and grow equally */
+    flex-basis: 0;
+    flex-grow: 1;
+}
+
+.pole { /*main body of pole*/
+    position: absolute;
+    background: var(--pole-shadow);
+    height: calc(14*var(--tower-dy));
+    width: var(--tower-dx);
+}
+
+.pole:before, .ring:before{ /*top and bottom part of pole, also hole in disc*/
+    content: ' ';
+    position: absolute;
+    background: var(--pole-main);
+    /* base dimensons on constant global size */
+    font-size: var(--scale);
+    width: var(--tower-dx);
+    height: var(--tower-dy);
+    /* ellipse borders */
+    border-radius: 100%;
+}
+.pole:before {
+    /* move pole top down by half its height */
+    margin-top: calc(-1 * calc(var(--tower-dy) / 2));
+}
+
+.pole:after { /* clip pole bottom */
+    content: ' ';
+    position: absolute;
+    /* base dimensons on constant global size */
+    font-size: var(--scale);
+    width: var(--tower-dx);
+    height: var(--tower-dy);
+    bottom: 0;
+    background: var(--background-color);
+    padding: 0 1px 1px 1px;
+    margin: 0 -1px -1px -1px;
+}
+
+.ring {
+    background: var(--ring-dynamic-color-main);
+    /* size of ring, set font-size on style attribute to change disc size */
+    font-size: 5em;
+    /* scales based on perspective constants */
+    width: var(--tower-dx);
+    height: var(--tower-dy);
+    /* elliptical shape */
+    border-radius: 100%;
+    /* item above overlaps me by half my height */
+    margin-top: calc(-1 * calc(var(--tower-dy) / 2));
+    margin-bottom: 0;
+
+    /* use flexbox to position the center hole */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    /* TODO: animate position changes */
+    transition: margin-bottom 0.4s ease-in-out;
+}
+.ring:before {
+    background: var(--ring-dynamic-color-shadow);
+}
+
+.ring .bottom { /* vertical dimension of disc, renders above pole */
+    background: var(--ring-dynamic-color-shadow);
+    /* shift down so top alligns with middle of ring */
+    position: relative;
+    top: 50%;
+    /* same size as ring top. can't be any different or its border radius doesn't work the same*/
+    width: 100%;
+    height: 100%;
+    /* elliptical borders on bottom only */
+    border-bottom-right-radius: 100%;
+    border-bottom-left-radius: 100%;
+    /* render above the pole */
+    z-index: 1;
+
+    /* base mask size off constant global size */
+    font-size: var(--scale);
+}
+.ring .bottom, .pole:after {
+    /* cut out hole in the middle of disc for pole to be visible */
+    /* also cut out bottom of pole to make it look like it's going into table */
+    /* https://stackoverflow.com/a/63714881 */
+    /* ellipse radii = tower diameter/2 (adding 0.5 makes it render smoother, probably something to do with css rounding, idk)*/
+    -webkit-mask: radial-gradient(ellipse calc(0.5px + var(--tower-dx) / 2) calc(0.5px + var(--tower-dy) / 2) at top, transparent 99%,#fff 100%);
+    mask: radial-gradient(ellipse calc(0.5px + var(--tower-dx) / 2) calc(0.5px + var(--tower-dy) / 2) at top, transparent 99%,#fff 100%);
+}
+
+.ring .bottom:before {
+    content: ' ';
+    background: var(--ring-dynamic-color-main);
+    /* grow big and strong */
+    display: block;
+    /* move it back up, since the bottom was moved down */
+    position: relative;
+    top: -50%;
+    /* same size */
+    width: 100%;
+    height: 100%;
+    /* elliptical shape */
+    border-radius: 100%;
+}
+
+/* shadow and higlights */
+.ring, .ring .bottom:before, .pole:before {
+    box-shadow: var(--highlight)
+}
+.ring .bottom, .pole {
+    box-shadow: var(--shadow), var(--highlight)
+}
+.ring:before {
+    /* darkens inside of ring */
+    box-shadow: inset 0 50px 0 50px rgba(0,0,0,0.2);
+}
+
+/* GAMESTATE STYLING */
+/* selected ring */
+.ring.selected {
+    /* will be calculated in JS */
+    margin-bottom: 50%;
+}
+
+/* ring styling */
+.ring[ringsize="1"] {
+    --ring-dynamic-color-main: var(--ring-1);
+    --ring-dynamic-color-shadow: var(--ring-1-shadow);
+    font-size: 4em;
+}
+.ring[ringsize="2"] {
+    --ring-dynamic-color-main: var(--ring-2);
+    --ring-dynamic-color-shadow: var(--ring-2-shadow);
+    font-size: 5em;
+}
+.ring[ringsize="3"] {
+    --ring-dynamic-color-main: var(--ring-3);
+    --ring-dynamic-color-shadow: var(--ring-3-shadow);
+    font-size: 6em;
+}
+.ring[ringsize="4"] {
+    --ring-dynamic-color-main: var(--ring-4);
+    --ring-dynamic-color-shadow: var(--ring-4-shadow);
+    font-size: 7em;
+}
