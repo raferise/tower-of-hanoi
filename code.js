@@ -33,6 +33,9 @@ class Tower {
         if (selectedRing === null) { //if a ring is not yet selected
             if (this.htmlTowerElement.childElementCount > 1) { //i have rings
                 this.playSelectRing(topRing);
+            } else {
+                //all routes must lead to click buffer
+                tryBuffer();
             }
         } else { //ring is already selected
             //if replacing the ring, or the tower is empty, or the ring is smaller than the next target
@@ -217,15 +220,18 @@ let inputBuffer = [];
 let useInputBuffer = false;
 //attempts to execute the next buffered click, 
 function tryBuffer() {
-
+    console.log("tried buffer");
     if (inputBuffer.length > 0) {
+        console.log("   doing click");
         //remove and do a tower click
         inputBuffer.shift().onTowerClick("force");
     } else {
+        console.log("   empty!");
         useInputBuffer = false;
     }
 }
 function pushToBuffer(towerObject) {
+    console.log("pushed to buffer");
     //let's not queue 100s of clicks if they do it a bunch
     if (inputBuffer.length < 8) {
         inputBuffer.push(towerObject);
