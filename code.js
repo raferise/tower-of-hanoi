@@ -21,7 +21,12 @@ class Tower {
         //adds a click event listner to onTowerClick. bind(this) makes the 'this' keyword in the callback refer to this object.
         htmlTowerElement.addEventListener("click", this.onTowerClick.bind(this));
     }
-    onTowerClick(event) {
+    onTowerClick() {
+        if (useInputBuffer) { //buffers inputs during animation
+            console.log("buffered click");
+            pushToBuffer(this);
+            return;
+        }
         let selectedRing = document.querySelector(".ring.selected");
         let topRing = this.getTopRing();
         if (selectedRing === null) { //if a ring is not yet selected
@@ -64,6 +69,9 @@ class Tower {
     
     //plays the select ring animation and selects it
     playSelectRing(ringElement) {
+        //buffer clicks while animating
+        useInputBuffer = true;
+        console.log("buffer enabled")
         //halt transitions while clearing positioning and selecting
         ringElement.style.transitionDuration = "0s";
         //put the ring in the same place, since .selected causes it to be absolute pos
@@ -79,7 +87,11 @@ class Tower {
             ringElement.style.zIndex = "-1";
             //disable transitions and start mouse-following effect
             ringElement.style.transitionDuration = "0s";
+            //set the left so it transitions properly when buffering clicks
+            ringElement.style.left = ringElement.offsetLeft+"px";
             dragRing(ringElement);
+            //execute the next buffered click, otherwise disable the buffer
+            tryBuffer();
         }, 400);
     }
     //plays the insert ring animation and inserts it
@@ -87,6 +99,8 @@ class Tower {
     //but it feels better if the popup appears after your last ring
     //hits the bottom
     playInsertRing(ringElement) {
+        useInputBuffer = true;
+        console.log("buffer enabled")
         cancelDragRing();
         ringElement.style.zIndex = "unset"; //reset z-index
         this.insertRing(ringElement);
@@ -110,6 +124,8 @@ class Tower {
                 if (this.isGoalPole && this.isComplete()) {
                     playerWin();
                 }
+                //execute the next buffered click, otherwise disable the buffer
+                tryBuffer();
             }.bind(this),400);
         }.bind(this),200);
     }
@@ -124,6 +140,7 @@ class Tower {
         setTimeout(function() {
             errorPopup.remove();
         }.bind(this), 1000);
+        tryBuffer();
     }
 }
 
@@ -165,6 +182,7 @@ function playerWin() {
         gravity: false
         });
 }
+//resets the rings
 function resetGame() {
     let rings = Array.from(document.querySelectorAll(".ring"));
     rings.sort((a,b) => a.getAttribute("ringsize") - b.getAttribute("ringsize"));
@@ -172,7 +190,6 @@ function resetGame() {
     for (ring of rings) {
         towers[0].insertRing(ring);
     }
-
 }
 document.querySelector(".directions button").addEventListener("click", function() {
     hidePopup(this.parentElement);
@@ -181,15 +198,37 @@ document.querySelector(".win button").addEventListener("click", function() {
     resetGame();
     hidePopup(this.parentElement);
 });
+//show the given popup
 function showPopup(htmlElement) {
     htmlElement.classList.remove("closed");
     //show the .info-popup element
     htmlElement.parentElement.classList.remove("closed");
 }
+//close the given popup
 function hidePopup(htmlElement) {
     htmlElement.classList.add("closed");
     //hide the .info-popup element
     htmlElement.parentElement.classList.add("closed");
+}
+
+//input buffering - when you click a tower during an animation,
+//it gets sent to this buffer to be done when the animation finishes.
+let inputBuffer = [];
+let useInputBuffer = false;
+function tryBuffer() {
+    if (inputBuffer.length > 0) {
+        console.log("calling buffer...");
+        useInputBuffer = false;
+        inputBuffer.shift().onTowerClick()
+    } else {
+        console.log("buffer empty");
+        useInputBuffer = false;
+    }
+}
+function pushToBuffer(towerObject) {
+    if (inputBuffer.length < 8) {
+        inputBuffer.push(towerObject);
+    }
 }
 
 //function to cancel dragging that gets bound by an instance of the dragRing function
