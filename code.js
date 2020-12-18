@@ -23,7 +23,6 @@ class Tower {
     }
     onTowerClick() {
         if (useInputBuffer) { //buffers inputs during animation
-            console.log("buffered click");
             pushToBuffer(this);
             return;
         }
@@ -71,7 +70,6 @@ class Tower {
     playSelectRing(ringElement) {
         //buffer clicks while animating
         useInputBuffer = true;
-        console.log("buffer enabled")
         //halt transitions while clearing positioning and selecting
         ringElement.style.transitionDuration = "0s";
         //put the ring in the same place, since .selected causes it to be absolute pos
@@ -100,7 +98,6 @@ class Tower {
     //hits the bottom
     playInsertRing(ringElement) {
         useInputBuffer = true;
-        console.log("buffer enabled")
         cancelDragRing();
         ringElement.style.zIndex = "unset"; //reset z-index
         this.insertRing(ringElement);
@@ -217,11 +214,9 @@ let inputBuffer = [];
 let useInputBuffer = false;
 function tryBuffer() {
     if (inputBuffer.length > 0) {
-        console.log("calling buffer...");
         useInputBuffer = false;
         inputBuffer.shift().onTowerClick()
     } else {
-        console.log("buffer empty");
         useInputBuffer = false;
     }
 }
