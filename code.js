@@ -21,25 +21,20 @@ class Tower {
         //adds a click event listner to onTowerClick. bind(this) makes the 'this' keyword in the callback refer to this object.
         htmlTowerElement.addEventListener("click", this.onTowerClick.bind(this));
     }
-    onTowerClick() {
-        //if a ring is not yet selected
-        //document.querySelector(".ring.selected") --> returns either null or the currently selected ring
+    onTowerClick(event) {
         let selectedRing = document.querySelector(".ring.selected");
         let topRing = this.getTopRing();
-        if (selectedRing === null) {
-            //add "selected" class to htmlTowerElement and the topRing
-            // this.htmlTowerElement.classList.add("selected");
-            topRing.classList.add('selected');
+        if (selectedRing === null) { //if a ring is not yet selected
+            if (this.htmlTowerElement.childElementCount > 1) { //i have rings
+                this.playSelectRing(topRing);
+            }
         } else { //ring is already selected
-            if (selectedRing === topRing) {//if the selected ring is my top ring
-                //deselect it
-                selectedRing.classList.remove("selected");
-            //else if the selected ring is smaller than my top ring OR the tower is empty
-            } else if ((this.htmlTowerElement.childElementCount === 1) || (selectedRing.getAttribute("ringsize") < topRing.getAttribute('ringsize'))) {
-                //move the selected ring to my tower, inserting it BEFORE the pole at the end.
-                // console.log(this.htmlTowerElement.lastChildElement);
-                this.htmlTowerElement.insertBefore(selectedRing, this.htmlTowerElement.children[this.htmlTowerElement.childElementCount-1]);
-                selectedRing.classList.remove("selected");
+            //if replacing the ring, or the tower is empty, or the ring is smaller than the next target
+            if ((selectedRing === topRing) ||
+                (this.htmlTowerElement.childElementCount === 1) ||
+                (selectedRing.getAttribute("ringsize") < topRing.getAttribute('ringsize'))) {
+                //insert the ring into the tower
+                this.playInsertRing(selectedRing);
                 //if I am goal pole and I am complete, call playerWin()
                 if (this.isGoalPole && this.isComplete()) {
                     playerWin();
@@ -48,40 +43,63 @@ class Tower {
         }
         
     }
+    //returns the topmost ring element from this tower
+    //order goes div.large + div.medium + div.small + div.pole
+    //so this is the 2nd to last child.
     getTopRing() {
-        //returns the topmost ring element from this tower
-        //tower is ordered as follows (to make overlapping work properly)
-        //LARGEST
-        //LARGER
-        //SMALLER
-        //SMALLEST
-        //POLE
-        //so the topmost element is the second to last one.
         return this.htmlTowerElement.children[this.htmlTowerElement.childElementCount-2];
         
     }
+    //returns a boolean stating whether or not I am a complete tower
+        //this occurs when I have 4 rings in ascending order
+        //since rings can only be placed in ascending order, all that matters is that I have 4 rings.
     isComplete() {
-        //returns a boolean stating whether or not I am a complete tower
-            //this occurs when I have 4 rings in ascending order
-            //since rings can only be placed in ascending order, all that matters is that I have 4 rings.
         return (this.htmlTowerElement.childElementCount === 5);
     }
-
-    //bonus functions for visual appeal, don't worry about them yet :)
+    //moves the provided ring to my tower, inserting it BEFORE the pole at the end.
+    insertRing(ringElement) {
+        this.htmlTowerElement.insertBefore(ringElement, this.htmlTowerElement.children[this.htmlTowerElement.childElementCount-1]);
+    }
+    
     playSelectRing(ringElement) {
-        // (!) by default, rings are subject to a "long" transition for top and left.
-        //move the ring top up
-        //set timeout for "long" transition
-            //set transition override - "no transition"
-            //bind document "mousemove" to move the ring
+        //halt transitions while clearing positioning and selecting
+        ringElement.style.transitionDuration = "0s";
+        ringElement.style.top = ringElement.offsetTop+"px";
+        ringElement.style.marginTop = "0px";
+        ringElement.classList.add('selected');
+        ringElement.parentElement.classList.add("selected");
+        ringElement.offsetTop; //makes browser calculate the value. breaks if this isn't here /shrug
+        ringElement.style.transitionDuration = "0.4s";
+        ringElement.style.top = "10px";
+        
+        setTimeout(function() {
+            //render behind towers so clicking it doesn't send it back to home
+            ringElement.style.zIndex = "-1";
+            //disable transitions and start mouse following effect
+            ringElement.style.transitionDuration = "0s";
+            dragRing(ringElement);
+        }, 400);
     }
     playInsertRing(ringElement) {
-        //unbind document "mousemove"
-        //set transition override - "short"
-        //set position to directly above pole
-        //set timeout for "short" transition
-            //clear transition override (back to "long")
-            //move the ring top down
+        ringElement.parentElement.classList.remove("selected");
+        cancelDragRing();
+        ringElement.style.zIndex = "unset"; //reset z-index
+        this.insertRing(ringElement);
+        ringElement.style.transitionDuration = "0.2s";
+        ringElement.style.left = (this.htmlTowerElement.offsetLeft + this.htmlTowerElement.clientWidth/2)-(ringElement.clientWidth/2)+"px";
+        // console.log(this.htmlTowerElement.offsetLeft);
+        setTimeout(function() {
+            ringElement.style.transitionDuration = "0s";
+            ringElement.classList.remove('selected');
+            let desiredTop = ringElement.offsetTop;
+            ringElement.classList.add('selected');
+            ringElement.style.transitionDuration = "0.4s";
+            ringElement.style.top = desiredTop+"px";
+            setTimeout(function() {
+                ringElement.style = "";
+                ringElement.classList.remove('selected');
+            },400);
+        },200);
     }
 }
 
@@ -100,9 +118,59 @@ document.querySelectorAll(".tower").forEach(element => {
 //that means the only global-scope things we need is a list of the towers and methods to reset the game / show the "You Win!" popup.
 function playerWin() {
     //you win! do a pop up and confetti
+    let modal = document.querySelector(".info-popup");
+    modal.style.visibility = "visible";
+    modal.innerText = "YOU WIN!!!!!!!!!!!!!";
     resetGame();
 }
 function resetGame() {
     //reset the gamestate and the discs on the towers
 }
 
+//function to cancel dragging that gets bound by an instance of the dragRing function
+let cancelDragRing;
+//drags a ring. provide a source 
+function dragRing(ringElement) {
+    if (!(ringElement instanceof Node)) {
+        throw new Error("dragRing must be called on a Node object");
+    }
+    document.addEventListener("mousemove", doDrag);
+    cancelDragRing = stopDrag;
+    let vel = 0;
+    let posX = ringElement.offsetLeft + ringElement.clientWidth/2;
+    let currX = posX;
+    let autoStep = null;
+  
+    function doDrag(event) {
+        //failsafe for animation frames after stopDrag
+        if (ringElement === null) return;
+        //when triggered from mouse drag and not animaiton frame
+        if (event instanceof Event) {
+            event.preventDefault();
+            currX = event.clientX;
+            vel = currX - posX;
+            doPhysics();
+            clearTimeout(autoStep);
+            autoStep = setTimeout(function() {
+                autoStep = null;
+                requestAnimationFrame(doDrag);
+            },10);
+        } else {
+            vel = currX - posX;
+            doPhysics();
+            if (((vel > 2)||(vel < -2))&&(autoStep === null)) {
+                requestAnimationFrame(doDrag);
+            }
+        } 
+    }
+
+    function doPhysics() {
+        posX += vel/20;
+        ringElement.style.left = (posX - ringElement.clientWidth/2) + "px";
+    }
+
+    function stopDrag() {
+        ringElement = null;
+        document.removeEventListener("mousemove", doDrag);
+    }
+}

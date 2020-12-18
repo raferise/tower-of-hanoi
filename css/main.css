@@ -10,12 +10,12 @@
     --ring-4-shadow: goldenrod;
     --pole-main: lightgray;
     --pole-shadow: gray;
-    --background-color: white;
+    --background-color: oldlace;
     /* "perspective" constants, changes ratio of width:height */
     --tower-dx: 7em;
     --tower-dy: 4.5em;
     /* global scaling constant, based on screen height */
-    --scale: 1vh;
+    --scale: 0.8vh;
     /* extra lighting effects */
     --shadow: inset -2px -1px 0 4px rgba(0,0,0,0.2);
     --highlight: inset 2px 2px 0px 2px rgba(255,255,255,0.4);
@@ -37,8 +37,11 @@ section {
     justify-content: space-evenly;
 }
 .info-popup {
-    border: 5px dashed magenta;
-    display: none;
+    font-size: 5vw;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    visibility: hidden;
 }
 
 .tower {
@@ -107,8 +110,8 @@ section {
     justify-content: center;
     align-items: center;
 
-    /* TODO: animate position changes */
-    transition: margin-bottom 0.4s ease-in-out;
+    /* default position change animation speed */
+    transition: all 0.3s ease-in-out;
 }
 .ring:before {
     background: var(--ring-dynamic-color-shadow);
@@ -170,8 +173,8 @@ section {
 /* GAMESTATE STYLING */
 /* selected ring */
 .ring.selected {
-    /* will be calculated in JS */
-    margin-bottom: 50%;
+    
+    position: absolute;
 }
 
 /* ring styling */
