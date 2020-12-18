@@ -32,13 +32,12 @@ class Tower {
             //if replacing the ring, or the tower is empty, or the ring is smaller than the next target
             if ((selectedRing === topRing) ||
                 (this.htmlTowerElement.childElementCount === 1) ||
-                (selectedRing.getAttribute("ringsize") < topRing.getAttribute('ringsize'))) {
+                (selectedRing.getAttribute("ringsize") < topRing.getAttribute("ringsize"))) {
                 //insert the ring into the tower
                 this.playInsertRing(selectedRing);
-                //if I am goal pole and I am complete, call playerWin()
-                if (this.isGoalPole && this.isComplete()) {
-                    playerWin();
-                }
+            } else {
+                //you must have broken the rules :(
+                this.playError();
             }
         }
         
@@ -53,53 +52,78 @@ class Tower {
     //returns a boolean stating whether or not I am a complete tower
         //this occurs when I have 4 rings in ascending order
         //since rings can only be placed in ascending order, all that matters is that I have 4 rings.
+        //if there were more rings/towers/goals this could be adjusted.
     isComplete() {
         return (this.htmlTowerElement.childElementCount === 5);
     }
+
     //moves the provided ring to my tower, inserting it BEFORE the pole at the end.
     insertRing(ringElement) {
         this.htmlTowerElement.insertBefore(ringElement, this.htmlTowerElement.children[this.htmlTowerElement.childElementCount-1]);
     }
     
+    //plays the select ring animation and selects it
     playSelectRing(ringElement) {
         //halt transitions while clearing positioning and selecting
         ringElement.style.transitionDuration = "0s";
+        //put the ring in the same place, since .selected causes it to be absolute pos
         ringElement.style.top = ringElement.offsetTop+"px";
         ringElement.style.marginTop = "0px";
         ringElement.classList.add('selected');
-        ringElement.parentElement.classList.add("selected");
-        ringElement.offsetTop; //makes browser calculate the value. breaks if this isn't here /shrug
-        ringElement.style.transitionDuration = "0.4s";
+        ringElement.offsetTop; //makes browser calculate the current top. breaks transition if this isn't here
+        ringElement.style.transitionDuration = "0.3s";
         ringElement.style.top = "10px";
         
         setTimeout(function() {
             //render behind towers so clicking it doesn't send it back to home
             ringElement.style.zIndex = "-1";
-            //disable transitions and start mouse following effect
+            //disable transitions and start mouse-following effect
             ringElement.style.transitionDuration = "0s";
             dragRing(ringElement);
         }, 400);
     }
+    //plays the insert ring animation and inserts it
+    //also checks for win condition, it was originally elsewhere
+    //but it feels better if the popup appears after your last ring
+    //hits the bottom
     playInsertRing(ringElement) {
-        ringElement.parentElement.classList.remove("selected");
         cancelDragRing();
         ringElement.style.zIndex = "unset"; //reset z-index
         this.insertRing(ringElement);
         ringElement.style.transitionDuration = "0.2s";
+        //align element to pole
         ringElement.style.left = (this.htmlTowerElement.offsetLeft + this.htmlTowerElement.clientWidth/2)-(ringElement.clientWidth/2)+"px";
-        // console.log(this.htmlTowerElement.offsetLeft);
+        //timeouts use bind to transfer this keyword
         setTimeout(function() {
+            //figure out where it's going to be when flex does magic
             ringElement.style.transitionDuration = "0s";
             ringElement.classList.remove('selected');
             let desiredTop = ringElement.offsetTop;
+            //then transition to that position
             ringElement.classList.add('selected');
-            ringElement.style.transitionDuration = "0.4s";
+            ringElement.style.transitionDuration = "0.3s";
             ringElement.style.top = desiredTop+"px";
             setTimeout(function() {
                 ringElement.style = "";
                 ringElement.classList.remove('selected');
-            },400);
-        },200);
+                //if I am goal pole and I am complete, call playerWin()
+                if (this.isGoalPole && this.isComplete()) {
+                    playerWin();
+                }
+            }.bind(this),400);
+        }.bind(this),200);
+    }
+    //plays the error animation showing the top ring is too small
+    playError() {
+        let badRing = this.getTopRing();
+        let errorPopup = document.createElement('span');
+        errorPopup.innerText = "×";
+        badRing.append(errorPopup);
+        errorPopup.classList.add('error');
+        //use bind to transfer this keyword
+        setTimeout(function() {
+            errorPopup.remove();
+        }.bind(this), 1000);
     }
 }
 
@@ -117,14 +141,55 @@ document.querySelectorAll(".tower").forEach(element => {
 //we can also use a class to mark which pole is the goal pole, and make its object recognize that and do the checks.
 //that means the only global-scope things we need is a list of the towers and methods to reset the game / show the "You Win!" popup.
 function playerWin() {
-    //you win! do a pop up and confetti
-    let modal = document.querySelector(".info-popup");
-    modal.style.visibility = "visible";
-    modal.innerText = "YOU WIN!!!!!!!!!!!!!";
-    resetGame();
+    let win = document.querySelector(".win");
+    showPopup(win);
+    //use the party.js library to make confetti :)
+    party.element(win, {
+        count: 100,
+        countVariation: 0.5,
+        angle: 180,
+        angleSpan: 80,
+        velocity: 900,
+        yVelocity: -300,
+        yVelocityVariation: 1,
+        rotationVelocityLimit: 6,
+        scaleVariation: 0.8,
+        });
+    party.element(win.parentElement, {
+        count: 50,
+        countVariation: 0.5,
+        angleSpan: 80,
+        velocity: 100,
+        rotationVelocityLimit: 6,
+        scaleVariation: 0.8,
+        gravity: false
+        });
 }
 function resetGame() {
-    //reset the gamestate and the discs on the towers
+    let rings = Array.from(document.querySelectorAll(".ring"));
+    rings.sort((a,b) => a.getAttribute("ringsize") - b.getAttribute("ringsize"));
+    rings = rings.reverse();
+    for (ring of rings) {
+        towers[0].insertRing(ring);
+    }
+
+}
+document.querySelector(".directions button").addEventListener("click", function() {
+    hidePopup(this.parentElement);
+});
+document.querySelector(".win button").addEventListener("click", function() {
+    resetGame();
+    hidePopup(this.parentElement);
+});
+function showPopup(htmlElement) {
+    htmlElement.classList.remove("closed");
+    //show the .info-popup element
+    htmlElement.parentElement.classList.remove("closed");
+}
+function hidePopup(htmlElement) {
+    htmlElement.classList.add("closed");
+    //hide the .info-popup element
+    htmlElement.parentElement.classList.add("closed");
 }
 
 //function to cancel dragging that gets bound by an instance of the dragRing function

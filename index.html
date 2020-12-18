@@ -21,6 +21,9 @@
 
   <body>
     <!-- Gameplay Section -->
+    <section class="h-flex-center">
+      <h1>Tower of Hanoi</h1>
+    </section>
     <section class="tower-game">
       <div class="tower">
         <div class="ring" ringsize=4><div class="bottom"></div></div>
@@ -38,7 +41,25 @@
     </section>
 
     <!-- Popup Info Section -->
-    <section class="info-popup"></section>
+    <section class="info-popup h-flex-center">
+      <div class="directions h-flex-center">
+        <h2>Welcome to the Tower of Hanoi</h2>
+        <h3>The Objective:</h3>
+        <p>Move all of the rings to the third pole.</p>
+        <h3>Rules:</h3>
+        <ol>
+          <li>Only one disk can be moved at a time.</li>
+          <li>No disk may be placed on top of a smaller disk.</li>
+        </ol>
+        <button>Play</button>
+      </div>
+      <div class="win h-flex-center closed">
+        <h2>You Win!</h2>
+        <p>The tower is complete! Congratulations!</p>
+        <button>Play Again</button>
+      </div>
+    </section>
+    <script src="party.min.js"></script>
     <script src="code.js"></script>
   </body>
 </html>
