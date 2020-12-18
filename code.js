@@ -11,18 +11,20 @@
 // 4.  check if the rings are in appropriate order
 // 4.a if things are in order on the last pole, they win!(confetti!)
 
-// JS CODE OUTLINE
+// JS CODE
 // Class (which becomes multiple Objects) to represent towers
 class Tower {
     constructor(htmlTowerElement) {
         this.htmlTowerElement = htmlTowerElement;
-        //whether or not htmlTowerElement has the class "goal"
+        //whether or not the tower should check win condition
         this.isGoalPole = htmlTowerElement.classList.contains("goal");
-        //adds a click event listner to onTowerClick. bind(this) makes the 'this' keyword in the callback refer to this object.
+        //adds a click event listner to tower. bind(this) makes the 'this' keyword in the callback refer to this object.
         htmlTowerElement.addEventListener("click", this.onTowerClick.bind(this));
     }
-    onTowerClick() {
-        if (useInputBuffer) { //buffers inputs during animation
+    onTowerClick(event) {
+        //holds inputs until after an animation completes
+        //use event="force" to disable when calling manually, especially if you're the buffer calling it.
+        if ((useInputBuffer) && (event !== "force")) {
             pushToBuffer(this);
             return;
         }
@@ -37,7 +39,7 @@ class Tower {
             if ((selectedRing === topRing) ||
                 (this.htmlTowerElement.childElementCount === 1) ||
                 (selectedRing.getAttribute("ringsize") < topRing.getAttribute("ringsize"))) {
-                //insert the ring into the tower
+                //insert the ring into the tower and play animation
                 this.playInsertRing(selectedRing);
             } else {
                 //you must have broken the rules :(
@@ -47,16 +49,15 @@ class Tower {
         
     }
     //returns the topmost ring element from this tower
-    //order goes div.large + div.medium + div.small + div.pole
-    //so this is the 2nd to last child.
+    //tower > {div.large + div.medium + div.small + div.pole}
+    //so this returns the 2nd to last child.
     getTopRing() {
         return this.htmlTowerElement.children[this.htmlTowerElement.childElementCount-2];
-        
     }
     //returns a boolean stating whether or not I am a complete tower
-        //this occurs when I have 4 rings in ascending order
-        //since rings can only be placed in ascending order, all that matters is that I have 4 rings.
-        //if there were more rings/towers/goals this could be adjusted.
+    //this occurs when I have 4 rings in ascending order
+    //since rings can only be placed in ascending order, all that matters is that I have 4 rings.
+    //if there were more rings/towers/goals this could be adjusted.
     isComplete() {
         return (this.htmlTowerElement.childElementCount === 5);
     }
@@ -76,19 +77,20 @@ class Tower {
         ringElement.style.top = ringElement.offsetTop+"px";
         ringElement.style.marginTop = "0px";
         ringElement.classList.add('selected');
-        ringElement.offsetTop; //makes browser calculate the current top. breaks transition if this isn't here
+        ringElement.offsetTop; //makes browser calculate the newly set top. breaks transition if this isn't here
         ringElement.style.transitionDuration = "0.3s";
         ringElement.style.top = "10px";
         
         setTimeout(function() {
-            //render behind towers so clicking it doesn't send it back to home
+            //render behind towers so clicking ring doesn't send it back to home
             ringElement.style.zIndex = "-1";
-            //disable transitions and start mouse-following effect
+            //disable transitions
             ringElement.style.transitionDuration = "0s";
-            //set the left so it transitions properly when buffering clicks
+            //set left so it transitions properly when buffering clicks
             ringElement.style.left = ringElement.offsetLeft+"px";
+            //start mouse-following effect
             dragRing(ringElement);
-            //execute the next buffered click, otherwise disable the buffer
+            //execute the next buffered click
             tryBuffer();
         }, 400);
     }
@@ -121,7 +123,7 @@ class Tower {
                 if (this.isGoalPole && this.isComplete()) {
                     playerWin();
                 }
-                //execute the next buffered click, otherwise disable the buffer
+                //execute the next buffered click
                 tryBuffer();
             }.bind(this),400);
         }.bind(this),200);
@@ -181,13 +183,15 @@ function playerWin() {
 }
 //resets the rings
 function resetGame() {
+    //collect all rings
     let rings = Array.from(document.querySelectorAll(".ring"));
-    rings.sort((a,b) => a.getAttribute("ringsize") - b.getAttribute("ringsize"));
-    rings = rings.reverse();
+    //sorted by size greatest to least
+    rings.sort((a,b) => b.getAttribute("ringsize") - a.getAttribute("ringsize"));
     for (ring of rings) {
         towers[0].insertRing(ring);
     }
 }
+//click events for the buttons
 document.querySelector(".directions button").addEventListener("click", function() {
     hidePopup(this.parentElement);
 });
@@ -212,15 +216,18 @@ function hidePopup(htmlElement) {
 //it gets sent to this buffer to be done when the animation finishes.
 let inputBuffer = [];
 let useInputBuffer = false;
+//attempts to execute the next buffered click, 
 function tryBuffer() {
+
     if (inputBuffer.length > 0) {
-        useInputBuffer = false;
-        inputBuffer.shift().onTowerClick()
+        //remove and do a tower click
+        inputBuffer.shift().onTowerClick("force");
     } else {
         useInputBuffer = false;
     }
 }
 function pushToBuffer(towerObject) {
+    //let's not queue 100s of clicks if they do it a bunch
     if (inputBuffer.length < 8) {
         inputBuffer.push(towerObject);
     }
@@ -235,6 +242,7 @@ function dragRing(ringElement) {
     }
     document.addEventListener("mousemove", doDrag);
     cancelDragRing = stopDrag;
+    //uses nested functions and variables to avoid global scope
     let vel = 0;
     let posX = ringElement.offsetLeft + ringElement.clientWidth/2;
     let currX = posX;
@@ -247,16 +255,16 @@ function dragRing(ringElement) {
         if (event instanceof Event) {
             event.preventDefault();
             currX = event.clientX;
-            vel = currX - posX;
             doPhysics();
             clearTimeout(autoStep);
+            //if we haven't recieved a mouse event in 10ms start automatically doing a tick every frame
             autoStep = setTimeout(function() {
                 autoStep = null;
                 requestAnimationFrame(doDrag);
             },10);
         } else {
-            vel = currX - posX;
             doPhysics();
+            //queue a new frame if the mouse still hasn't moved and the velocity is high enough
             if (((vel > 2)||(vel < -2))&&(autoStep === null)) {
                 requestAnimationFrame(doDrag);
             }
@@ -264,6 +272,8 @@ function dragRing(ringElement) {
     }
 
     function doPhysics() {
+        //changes position based on mouse cursor and current position
+        vel = currX - posX;
         posX += vel/20;
         ringElement.style.left = (posX - ringElement.clientWidth/2) + "px";
     }
