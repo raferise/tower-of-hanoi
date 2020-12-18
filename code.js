@@ -92,7 +92,7 @@ class Tower {
             dragRing(ringElement);
             //execute the next buffered click
             tryBuffer();
-        }, 400);
+        }, 300);
     }
     //plays the insert ring animation and inserts it
     //also checks for win condition, it was originally elsewhere
@@ -125,7 +125,7 @@ class Tower {
                 }
                 //execute the next buffered click
                 tryBuffer();
-            }.bind(this),400);
+            }.bind(this),300);
         }.bind(this),200);
     }
     //plays the error animation showing the top ring is too small
@@ -133,12 +133,11 @@ class Tower {
         let badRing = this.getTopRing();
         let errorPopup = document.createElement('span');
         errorPopup.innerText = "×";
-        badRing.append(errorPopup);
         errorPopup.classList.add('error');
-        //use bind to transfer this keyword
+        badRing.append(errorPopup);
         setTimeout(function() {
             errorPopup.remove();
-        }.bind(this), 1000);
+        }, 1000);
         tryBuffer();
     }
 }
