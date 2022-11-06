@@ -232,6 +232,10 @@ button {
     display: flex;
     justify-content: center;
     align-items: center;
+    
+    /* affects visual layering order */
+    position: relative;
+    
 
     /* default position change animation speed */
     transition: all 0s ease-in-out;
